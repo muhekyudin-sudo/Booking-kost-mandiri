@@ -39,6 +39,9 @@
         <?php if ((int) $stats['menunggu'] > 0): ?>
           <span class="badge unavailable"><?= e($stats['menunggu']) ?> menunggu verifikasi</span>
         <?php endif; ?>
+        <?php if ((int) $stats['lewat_tempo'] > 0): ?>
+          <span class="badge danger"><?= e($stats['lewat_tempo']) ?> lewat jatuh tempo</span>
+        <?php endif; ?>
       </h3>
       <p>Cek booking masuk, verifikasi pembayaran, dan batalkan booking.</p>
     </div>

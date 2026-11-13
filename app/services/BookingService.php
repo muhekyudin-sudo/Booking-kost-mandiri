@@ -423,7 +423,7 @@ final class BookingService
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
-                "SELECT p.status AS payment_status, p.payment_method, p.proof_file,
+                "SELECT p.payment_type, p.status AS payment_status, p.payment_method, p.proof_file,
                         b.id AS booking_id, b.status AS booking_status, b.room_unit_id,
                         rc.property_id
                  FROM payments p
@@ -434,19 +434,20 @@ final class BookingService
             );
             $stmt->execute([$paymentId]);
             $payment = $stmt->fetch();
-            if (!$payment || $payment['payment_method'] !== 'qris'
+            if (!$payment) {
+                throw new DomainException('Pembayaran ini tidak lagi menunggu verifikasi.');
+            }
+
+            // Pelunasan DP dibayar saat booking sudah aktif; pembayaran pertama saat booking menunggu verifikasi.
+            $isSettlement = $payment['payment_type'] === 'pelunasan_dp';
+            $expectedBookingStatus = $isSettlement ? 'active' : 'waiting_approval';
+            if ($payment['payment_method'] !== 'qris'
                 || $payment['payment_status'] !== 'pending'
-                || $payment['booking_status'] !== 'waiting_approval'
+                || $payment['booking_status'] !== $expectedBookingStatus
                 || $payment['proof_file'] === null) {
                 throw new DomainException('Pembayaran ini tidak lagi menunggu verifikasi.');
             }
             self::assertReceptionistForProperty($pdo, $receptionistId, $staffId, (int) $payment['property_id']);
-
-            $unitStatus = $pdo->prepare('SELECT status FROM room_units WHERE id = ? FOR UPDATE');
-            $unitStatus->execute([(int) $payment['room_unit_id']]);
-            if ($unitStatus->fetchColumn() !== 'on_hold') {
-                throw new DomainException('Status kamar berubah. Muat ulang halaman sebelum memproses.');
-            }
 
             $updatePayment = $pdo->prepare(
                 'UPDATE payments
@@ -454,6 +455,40 @@ final class BookingService
                      approved_by_user_id = ?, approved_by_staff_id = ?
                  WHERE id = ? AND status = \'pending\''
             );
+
+            if ($isSettlement) {
+                // Pelunasan: booking tetap aktif. Disetujui = sisa menjadi 0; ditolak = penyewa boleh mengulang.
+                $updatePayment->execute([
+                    $approved ? 'approved' : 'rejected',
+                    $approved ? null : $rejectionReason,
+                    $receptionistId,
+                    $staffId,
+                    $paymentId,
+                ]);
+                if ($updatePayment->rowCount() !== 1) {
+                    throw new DomainException('Pembayaran sudah diproses oleh petugas lain.');
+                }
+                if ($approved) {
+                    $settle = $pdo->prepare(
+                        "UPDATE bookings
+                         SET paid_amount = total_amount, remaining_amount = 0, remaining_due_date = NULL
+                         WHERE id = ? AND status = 'active' AND remaining_amount > 0"
+                    );
+                    $settle->execute([(int) $payment['booking_id']]);
+                    if ($settle->rowCount() !== 1) {
+                        throw new DomainException('Status booking berubah. Muat ulang halaman sebelum memproses.');
+                    }
+                }
+                $pdo->commit();
+                return (int) $payment['booking_id'];
+            }
+
+            $unitStatus = $pdo->prepare('SELECT status FROM room_units WHERE id = ? FOR UPDATE');
+            $unitStatus->execute([(int) $payment['room_unit_id']]);
+            if ($unitStatus->fetchColumn() !== 'on_hold') {
+                throw new DomainException('Status kamar berubah. Muat ulang halaman sebelum memproses.');
+            }
+
             $updatePayment->execute([
                 $approved ? 'approved' : 'rejected',
                 $approved ? null : $rejectionReason,
@@ -526,6 +561,12 @@ final class BookingService
             if ($updateBooking->rowCount() !== 1 || $releaseUnit->rowCount() !== 1) {
                 throw new DomainException('Status booking atau kamar berubah. Muat ulang halaman.');
             }
+            // Tagihan pelunasan yang belum diproses ikut ditutup supaya tidak tersisa sebagai "menunggu".
+            $closePending = $pdo->prepare(
+                "UPDATE payments SET status = 'rejected', rejection_reason = 'Booking dibatalkan.'
+                 WHERE booking_id = ? AND status = 'pending'"
+            );
+            $closePending->execute([$bookingId]);
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -582,7 +623,8 @@ final class BookingService
         $storedPath = null;
         try {
             $stmt = $pdo->prepare(
-                "SELECT p.id, b.id AS booking_id, b.room_unit_id, b.status AS booking_status, b.expires_at
+                "SELECT p.id, p.payment_type, p.status AS payment_status, p.proof_file,
+                        b.id AS booking_id, b.room_unit_id, b.status AS booking_status, b.expires_at
                  FROM payments p
                  JOIN bookings b ON b.id = p.booking_id
                  WHERE p.id = ? AND b.user_id = ? AND p.payment_method = 'qris'
@@ -593,21 +635,33 @@ final class BookingService
             if (!$payment) {
                 throw new DomainException('Pembayaran tidak ditemukan.');
             }
-            if ($payment['booking_status'] !== 'pending_payment' || $payment['expires_at'] === null) {
-                throw new DomainException('Booking ini tidak lagi menunggu bukti pembayaran.');
-            }
-            if ($requestTimestamp > strtotime((string) $payment['expires_at'])) {
-                $expire = $pdo->prepare(
-                    "UPDATE bookings SET status = 'expired'
-                     WHERE id = ? AND status = 'pending_payment'"
-                );
-                $expire->execute([(int) $payment['booking_id']]);
-                $release = $pdo->prepare(
-                    "UPDATE room_units SET status = 'available' WHERE id = ? AND status = 'on_hold'"
-                );
-                $release->execute([(int) $payment['room_unit_id']]);
-                $pdo->commit();
-                throw new DomainException('Waktu pembayaran telah habis. Silakan buat booking baru.');
+
+            // Pelunasan DP dibayar saat booking sudah aktif (tanpa batas 1 jam); pembayaran pertama punya batas waktu.
+            $isSettlement = $payment['payment_type'] === 'pelunasan_dp';
+            if ($isSettlement) {
+                if ($payment['booking_status'] !== 'active' || $payment['payment_status'] !== 'pending') {
+                    throw new DomainException('Pelunasan ini tidak lagi menunggu bukti pembayaran.');
+                }
+                if ($payment['proof_file'] !== null) {
+                    throw new DomainException('Bukti pelunasan sudah dikirim dan sedang menunggu verifikasi.');
+                }
+            } else {
+                if ($payment['booking_status'] !== 'pending_payment' || $payment['expires_at'] === null) {
+                    throw new DomainException('Booking ini tidak lagi menunggu bukti pembayaran.');
+                }
+                if ($requestTimestamp > strtotime((string) $payment['expires_at'])) {
+                    $expire = $pdo->prepare(
+                        "UPDATE bookings SET status = 'expired'
+                         WHERE id = ? AND status = 'pending_payment'"
+                    );
+                    $expire->execute([(int) $payment['booking_id']]);
+                    $release = $pdo->prepare(
+                        "UPDATE room_units SET status = 'available' WHERE id = ? AND status = 'on_hold'"
+                    );
+                    $release->execute([(int) $payment['room_unit_id']]);
+                    $pdo->commit();
+                    throw new DomainException('Waktu pembayaran telah habis. Silakan buat booking baru.');
+                }
             }
 
             $directory = BASE_PATH . '/storage/private/bukti';
@@ -622,13 +676,15 @@ final class BookingService
 
             $updatePayment = $pdo->prepare('UPDATE payments SET proof_file = ? WHERE id = ?');
             $updatePayment->execute([$storedPath, $paymentId]);
-            $updateBooking = $pdo->prepare(
-                "UPDATE bookings SET status = 'waiting_approval', expires_at = NULL
-                 WHERE id = ? AND status = 'pending_payment'"
-            );
-            $updateBooking->execute([(int) $payment['booking_id']]);
-            if ($updateBooking->rowCount() !== 1) {
-                throw new DomainException('Status booking berubah. Muat ulang halaman dan coba kembali.');
+            if (!$isSettlement) {
+                $updateBooking = $pdo->prepare(
+                    "UPDATE bookings SET status = 'waiting_approval', expires_at = NULL
+                     WHERE id = ? AND status = 'pending_payment'"
+                );
+                $updateBooking->execute([(int) $payment['booking_id']]);
+                if ($updateBooking->rowCount() !== 1) {
+                    throw new DomainException('Status booking berubah. Muat ulang halaman dan coba kembali.');
+                }
             }
             $pdo->commit();
         } catch (Throwable $e) {
@@ -638,6 +694,184 @@ final class BookingService
             }
             throw $e;
         }
+    }
+
+    /**
+     * Penyewa membuat tagihan pelunasan untuk sisa DP. Mengembalikan id pembayaran pelunasan.
+     * Tagihan yang masih terbuka (pending) dipakai ulang agar tidak ada tagihan ganda.
+     */
+    public static function createSettlement(int $bookingId, int $tenantId): int
+    {
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT id, pnr_code, status, payment_scheme, remaining_amount
+                 FROM bookings WHERE id = ? AND user_id = ? FOR UPDATE'
+            );
+            $stmt->execute([$bookingId, $tenantId]);
+            $booking = $stmt->fetch();
+            if (!$booking) {
+                throw new DomainException('Booking tidak ditemukan.');
+            }
+            if ($booking['status'] !== 'active'
+                || $booking['payment_scheme'] !== 'dp'
+                || (float) $booking['remaining_amount'] <= 0) {
+                throw new DomainException('Booking ini tidak memiliki sisa pembayaran yang dapat dilunasi.');
+            }
+
+            $open = $pdo->prepare(
+                "SELECT id FROM payments
+                 WHERE booking_id = ? AND payment_type = 'pelunasan_dp' AND status = 'pending'
+                 ORDER BY id DESC LIMIT 1"
+            );
+            $open->execute([$bookingId]);
+            $openId = $open->fetchColumn();
+            if ($openId !== false) {
+                $pdo->commit();
+                return (int) $openId;
+            }
+
+            $count = $pdo->prepare(
+                "SELECT COUNT(*) FROM payments WHERE booking_id = ? AND payment_type = 'pelunasan_dp'"
+            );
+            $count->execute([$bookingId]);
+            $invoice = 'INV-' . $booking['pnr_code'] . '-PL' . ((int) $count->fetchColumn() + 1);
+
+            $insert = $pdo->prepare(
+                "INSERT INTO payments (booking_id, invoice_code, payment_type, amount, payment_method, status)
+                 VALUES (?, ?, 'pelunasan_dp', ?, 'qris', 'pending')"
+            );
+            $insert->execute([$bookingId, $invoice, $booking['remaining_amount']]);
+            $paymentId = (int) $pdo->lastInsertId();
+            $pdo->commit();
+            return $paymentId;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /** Resepsionis mencatat pelunasan tunai (penyewa membayar sisa langsung di tempat). */
+    public static function recordCashSettlement(int $bookingId, int $receptionistId, int $staffId): void
+    {
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                "SELECT b.pnr_code, b.status, b.payment_scheme, b.remaining_amount, rc.property_id
+                 FROM bookings b
+                 JOIN room_units ru ON ru.id = b.room_unit_id
+                 JOIN room_classes rc ON rc.id = ru.room_class_id
+                 WHERE b.id = ? FOR UPDATE"
+            );
+            $stmt->execute([$bookingId]);
+            $booking = $stmt->fetch();
+            if (!$booking) {
+                throw new DomainException('Booking tidak ditemukan.');
+            }
+            self::assertReceptionistForProperty($pdo, $receptionistId, $staffId, (int) $booking['property_id']);
+            if ($booking['status'] !== 'active'
+                || $booking['payment_scheme'] !== 'dp'
+                || (float) $booking['remaining_amount'] <= 0) {
+                throw new DomainException('Booking ini tidak memiliki sisa pembayaran yang dapat dilunasi.');
+            }
+
+            $withProof = $pdo->prepare(
+                "SELECT COUNT(*) FROM payments
+                 WHERE booking_id = ? AND payment_type = 'pelunasan_dp'
+                   AND status = 'pending' AND proof_file IS NOT NULL"
+            );
+            $withProof->execute([$bookingId]);
+            if ((int) $withProof->fetchColumn() > 0) {
+                throw new DomainException('Ada bukti pelunasan yang menunggu verifikasi. Setujui atau tolak bukti itu terlebih dahulu.');
+            }
+
+            // Tagihan pelunasan QRIS yang belum ada buktinya digantikan oleh pelunasan tunai ini.
+            $close = $pdo->prepare(
+                "UPDATE payments
+                 SET status = 'rejected', rejection_reason = 'Digantikan pelunasan tunai oleh resepsionis.',
+                     approved_at = CURRENT_TIMESTAMP, approved_by_user_id = ?, approved_by_staff_id = ?
+                 WHERE booking_id = ? AND payment_type = 'pelunasan_dp' AND status = 'pending'"
+            );
+            $close->execute([$receptionistId, $staffId, $bookingId]);
+
+            $count = $pdo->prepare(
+                "SELECT COUNT(*) FROM payments WHERE booking_id = ? AND payment_type = 'pelunasan_dp'"
+            );
+            $count->execute([$bookingId]);
+            $invoice = 'INV-' . $booking['pnr_code'] . '-PL' . ((int) $count->fetchColumn() + 1);
+
+            $insert = $pdo->prepare(
+                "INSERT INTO payments
+                    (booking_id, invoice_code, payment_type, amount, payment_method, status,
+                     approved_at, approved_by_user_id, approved_by_staff_id)
+                 VALUES (?, ?, 'pelunasan_dp', ?, 'cash', 'approved', CURRENT_TIMESTAMP, ?, ?)"
+            );
+            $insert->execute([$bookingId, $invoice, $booking['remaining_amount'], $receptionistId, $staffId]);
+
+            $settle = $pdo->prepare(
+                "UPDATE bookings
+                 SET paid_amount = total_amount, remaining_amount = 0, remaining_due_date = NULL
+                 WHERE id = ? AND status = 'active' AND remaining_amount > 0"
+            );
+            $settle->execute([$bookingId]);
+            if ($settle->rowCount() !== 1) {
+                throw new DomainException('Status booking berubah. Muat ulang halaman sebelum memproses.');
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /** Riwayat pembayaran (DP, pelunasan, dst.) untuk banyak booking sekaligus, dikelompokkan per booking_id. */
+    public static function paymentsForBookings(array $bookingIds): array
+    {
+        $bookingIds = array_values(array_unique(array_filter(
+            array_map('intval', $bookingIds),
+            static fn (int $id): bool => $id > 0
+        )));
+        if ($bookingIds === []) {
+            return [];
+        }
+        $marks = implode(',', array_fill(0, count($bookingIds), '?'));
+        $stmt = db()->prepare(
+            "SELECT p.id, p.booking_id, p.invoice_code, p.payment_type, p.amount, p.payment_method,
+                    p.status, p.proof_file, p.rejection_reason, p.approved_at, rs.name AS staff_name
+             FROM payments p
+             LEFT JOIN receptionist_staff rs ON rs.id = p.approved_by_staff_id
+             WHERE p.booking_id IN ($marks)
+             ORDER BY p.id"
+        );
+        $stmt->execute($bookingIds);
+        $grouped = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $grouped[(int) $row['booking_id']][] = $row;
+        }
+        return $grouped;
+    }
+
+    /** Tipe pembayaran (dp_50, full_100, pelunasan_dp, ...) atau null bila tidak ditemukan. */
+    public static function paymentType(int $paymentId): ?string
+    {
+        $stmt = db()->prepare('SELECT payment_type FROM payments WHERE id = ?');
+        $stmt->execute([$paymentId]);
+        $type = $stmt->fetchColumn();
+        return is_string($type) ? $type : null;
+    }
+
+    /** Nama tipe pembayaran untuk ditampilkan di halaman. */
+    public static function paymentTypeLabel(string $type): string
+    {
+        return match ($type) {
+            'dp_50' => 'DP 50%',
+            'full_100' => 'Pembayaran lunas',
+            'pelunasan_dp' => 'Pelunasan DP',
+            'recurring_monthly' => 'Tagihan bulanan',
+            default => $type,
+        };
     }
 
     public static function generatePnr(PDO $pdo): string

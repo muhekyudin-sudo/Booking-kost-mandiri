@@ -126,9 +126,26 @@ final class BookingController
         view('booking/show', [
             'extraCss' => ['/assets/css/booking.css'],
             'booking' => $booking,
+            'payments' => BookingService::paymentsForBookings([$bookingId])[$bookingId] ?? [],
             'qrisImageUrl' => $this->qrisImageUrl(),
             'expiresAt' => $booking['expires_at'] !== null ? strtotime((string) $booking['expires_at']) * 1000 : null,
         ]);
+    }
+
+    public function startSettlement(array $params): void
+    {
+        $bookingId = $this->positiveId($params['booking_id'] ?? null);
+        if ($this->qrisImageUrl() === null) {
+            flash('error', 'Pelunasan belum dapat dibuat karena QRIS belum dikonfigurasi pengelola.');
+            redirect('/tenant/bookings/' . $bookingId);
+        }
+        try {
+            BookingService::createSettlement($bookingId, (int) current_user()['id']);
+            flash('success', 'Tagihan pelunasan dibuat. Bayar lewat QRIS lalu unggah bukti pembayaran.');
+        } catch (DomainException $e) {
+            flash('error', $e->getMessage());
+        }
+        redirect('/tenant/bookings/' . $bookingId);
     }
 
     public function uploadProof(array $params): void
@@ -231,7 +248,9 @@ final class BookingController
                 JOIN room_units ru ON ru.id = b.room_unit_id
                 JOIN room_classes rc ON rc.id = ru.room_class_id
                 JOIN properties p ON p.id = rc.property_id
-                LEFT JOIN payments pay ON pay.booking_id = b.id";
+                LEFT JOIN payments pay ON pay.id = (
+                    SELECT MAX(p2.id) FROM payments p2 WHERE p2.booking_id = b.id
+                )";
     }
 
     private function qrisImageUrl(): ?string

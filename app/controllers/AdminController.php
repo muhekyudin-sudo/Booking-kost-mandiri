@@ -14,7 +14,7 @@ final class AdminController
 
         $stmt = db()->prepare(
             "SELECT b.id, b.pnr_code, b.status AS booking_status, b.booking_type, b.start_date, b.end_date,
-                    b.total_amount, b.paid_amount, b.remaining_amount, b.payment_scheme,
+                    b.total_amount, b.paid_amount, b.remaining_amount, b.payment_scheme, b.remaining_due_date,
                     u.name AS tenant_name, u.email AS tenant_email,
                     p.name AS property_name, rc.name AS room_class_name, ru.room_number, ru.status AS unit_status,
                     pay.id AS payment_id, pay.amount AS payment_amount, pay.payment_method,
@@ -34,9 +34,11 @@ final class AdminController
              ORDER BY b.id DESC"
         );
         $stmt->execute([$search, $search]);
+        $bookings = $stmt->fetchAll();
         view('receptionist/bookings', [
             'extraCss' => ['/assets/css/filters.css', '/assets/css/booking.css'],
-            'bookings' => $stmt->fetchAll(),
+            'bookings' => $bookings,
+            'paymentsByBooking' => BookingService::paymentsForBookings(array_column($bookings, 'id')),
             'search' => $search,
             'staffName' => '',
             'isAdmin' => true,

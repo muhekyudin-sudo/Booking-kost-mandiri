@@ -25,6 +25,7 @@ $router->group('/tenant', ['auth', 'role:tenant'], function (Router $r) {
     $r->get('', [DashboardController::class, 'tenant']);
     $r->get('/bookings', [BookingController::class, 'myBookings']);
     $r->get('/bookings/{booking_id}', [BookingController::class, 'show']);
+    $r->post('/bookings/{booking_id}/settlement', [BookingController::class, 'startSettlement']);
     $r->post('/payments/{payment_id}/proof', [BookingController::class, 'uploadProof']);
 });
 
@@ -53,6 +54,7 @@ $router->group('/resepsionis', ['auth', 'role:receptionist', 'property'], functi
         $r->post('/payments/{payment_id}/approve', [ReceptionistController::class, 'approve']);
         $r->post('/payments/{payment_id}/reject', [ReceptionistController::class, 'reject']);
         $r->post('/bookings/{booking_id}/cancel', [ReceptionistController::class, 'cancel']);
+        $r->post('/bookings/{booking_id}/settle-cash', [ReceptionistController::class, 'settleCash']);
         $r->get('/kasir', [ReceptionistController::class, 'cashier']);
         $r->post('/kasir', [ReceptionistController::class, 'storeCashier']);
     });

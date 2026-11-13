@@ -13,8 +13,8 @@ final class ReceptionistController
 
         $stmt = db()->prepare(
             "SELECT b.id, b.pnr_code, b.status AS booking_status, b.booking_type, b.start_date, b.end_date,
-                    b.total_amount, b.paid_amount, b.remaining_amount, b.payment_scheme,
-                    u.name AS tenant_name, u.email AS tenant_email,
+                    b.total_amount, b.paid_amount, b.remaining_amount, b.payment_scheme, b.remaining_due_date,
+                    u.name AS tenant_name, u.email AS tenant_email, u.phone AS tenant_phone,
                     p.name AS property_name, rc.name AS room_class_name, ru.room_number, ru.status AS unit_status,
                     pay.id AS payment_id, pay.amount AS payment_amount, pay.payment_method,
                     pay.status AS payment_status, pay.proof_file, pay.rejection_reason,
@@ -30,12 +30,17 @@ final class ReceptionistController
              LEFT JOIN users approver ON approver.id = pay.approved_by_user_id
              LEFT JOIN receptionist_staff approver_staff ON approver_staff.id = pay.approved_by_staff_id
              WHERE p.id = ? AND (? = '' OR b.pnr_code = ?)
-             ORDER BY (b.status = 'waiting_approval') DESC, b.id DESC"
+             ORDER BY (b.status = 'waiting_approval' OR EXISTS (
+                 SELECT 1 FROM payments pp
+                 WHERE pp.booking_id = b.id AND pp.status = 'pending' AND pp.proof_file IS NOT NULL
+             )) DESC, b.id DESC"
         );
         $stmt->execute([(int) current_user()['property_id'], $search, $search]);
+        $bookings = $stmt->fetchAll();
         view('receptionist/bookings', [
             'extraCss' => ['/assets/css/filters.css', '/assets/css/booking.css'],
-            'bookings' => $stmt->fetchAll(),
+            'bookings' => $bookings,
+            'paymentsByBooking' => BookingService::paymentsForBookings(array_column($bookings, 'id')),
             'search' => $search,
             'staffName' => (string) $_SESSION['active_staff_name'],
             'isAdmin' => false,
@@ -113,6 +118,7 @@ final class ReceptionistController
     public function approve(array $params): void
     {
         $paymentId = $this->positiveId($params['payment_id'] ?? null);
+        $isSettlement = BookingService::paymentType($paymentId) === 'pelunasan_dp';
         try {
             $bookingId = BookingService::reviewPayment(
                 $paymentId,
@@ -125,12 +131,13 @@ final class ReceptionistController
             redirect('/resepsionis/bookings');
         }
 
+        $label = $isSettlement ? 'Pelunasan disetujui, booking kini lunas' : 'Pembayaran disetujui';
         try {
             EmailService::sendReceipt($bookingId);
-            flash('success', 'Pembayaran disetujui dan e-kuitansi dikirim ke penyewa.');
+            flash('success', $label . ' dan e-kuitansi dikirim ke penyewa.');
         } catch (RuntimeException|PDOException $e) {
             error_log('Approved payment receipt email failed for booking ' . $bookingId . ': ' . $e->getMessage());
-            flash('error', 'Pembayaran berhasil disetujui, tetapi e-kuitansi gagal dikirim. Periksa konfigurasi SMTP.');
+            flash('error', $label . ', tetapi e-kuitansi gagal dikirim. Periksa konfigurasi SMTP.');
         }
         redirect('/resepsionis/bookings');
     }
@@ -139,6 +146,7 @@ final class ReceptionistController
     {
         $paymentId = $this->positiveId($params['payment_id'] ?? null);
         $reason = $this->postString('rejection_reason');
+        $isSettlement = BookingService::paymentType($paymentId) === 'pelunasan_dp';
         try {
             $bookingId = BookingService::reviewPayment(
                 $paymentId,
@@ -153,11 +161,42 @@ final class ReceptionistController
         }
 
         try {
-            EmailService::sendCancellation($bookingId, $reason);
-            flash('success', 'Bukti pembayaran ditolak. Kamar dilepas dan email pembatalan dikirim.');
+            if ($isSettlement) {
+                EmailService::sendSettlementRejected($bookingId, $reason);
+                flash('success', 'Bukti pelunasan ditolak. Booking tetap aktif dan penyewa dapat mengunggah ulang.');
+            } else {
+                EmailService::sendCancellation($bookingId, $reason);
+                flash('success', 'Bukti pembayaran ditolak. Kamar dilepas dan email pembatalan dikirim.');
+            }
         } catch (RuntimeException|PDOException $e) {
-            error_log('Rejected booking cancellation email failed for booking ' . $bookingId . ': ' . $e->getMessage());
-            flash('error', 'Bukti pembayaran ditolak dan kamar dilepas, tetapi email pembatalan gagal dikirim. Periksa konfigurasi SMTP.');
+            error_log('Rejected payment email failed for booking ' . $bookingId . ': ' . $e->getMessage());
+            flash('error', $isSettlement
+                ? 'Bukti pelunasan ditolak, tetapi email pemberitahuan gagal dikirim. Periksa konfigurasi SMTP.'
+                : 'Bukti pembayaran ditolak dan kamar dilepas, tetapi email pembatalan gagal dikirim. Periksa konfigurasi SMTP.');
+        }
+        redirect('/resepsionis/bookings');
+    }
+
+    public function settleCash(array $params): void
+    {
+        $bookingId = $this->positiveId($params['booking_id'] ?? null);
+        try {
+            BookingService::recordCashSettlement(
+                $bookingId,
+                (int) current_user()['id'],
+                (int) $_SESSION['active_staff_id']
+            );
+        } catch (DomainException $e) {
+            flash('error', $e->getMessage());
+            redirect('/resepsionis/bookings');
+        }
+
+        try {
+            EmailService::sendReceipt($bookingId);
+            flash('success', 'Pelunasan tunai dicatat, booking kini lunas, dan e-kuitansi dikirim ke penyewa.');
+        } catch (RuntimeException|PDOException $e) {
+            error_log('Cash settlement receipt email failed for booking ' . $bookingId . ': ' . $e->getMessage());
+            flash('error', 'Pelunasan tunai dicatat, tetapi e-kuitansi gagal dikirim. Periksa konfigurasi SMTP.');
         }
         redirect('/resepsionis/bookings');
     }

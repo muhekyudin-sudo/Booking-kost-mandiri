@@ -317,6 +317,12 @@ button:disabled {
   color: var(--oranye-teks);
 }
 
+/* Badge merah: lewat jatuh tempo */
+.badge.danger {
+  background: var(--merah-bg);
+  color: var(--merah-teks);
+}
+
 /* Teks petunjuk kecil berwarna abu */
 .hint {
   color: var(--teks-abu);
