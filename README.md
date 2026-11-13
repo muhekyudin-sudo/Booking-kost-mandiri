@@ -1,201 +1,89 @@
 # Kost Mandiri
 
-Aplikasi pemesanan kost berbasis **PHP Native** (tanpa framework). Penyewa melihat katalog kost per provinsi/kota/gedung, memilih kelas kamar, lalu memesan dan membayar lewat QRIS. Resepsionis memverifikasi pembayaran, admin mengelola master data.
+Aplikasi web untuk katalog kost, pemesanan kamar, dan pengelolaan transaksi. Penyewa dapat mencari gedung dan kamar, membuat booking online dengan pembayaran QRIS, serta melihat status booking. Admin mengelola data kost, sedangkan resepsionis menangani booking, verifikasi pembayaran, dan transaksi tunai.
 
-> README ini juga berfungsi sebagai **konteks untuk prompt berikutnya** (ke Claude atau AI lain). Lihat bagian [Panduan menulis prompt](#panduan-menulis-prompt).
+## Fitur
 
----
+- Katalog berdasarkan provinsi dan kota, dengan filter kelas kamar dan jenis kost.
+- Detail gedung, kelas kamar, unit tersedia, fasilitas, dan harga berdasarkan durasi.
+- Registrasi dan login penyewa; pengelolaan profil dan permintaan reset password melalui email.
+- Booking online dengan pilihan harian, mingguan, bulanan, atau tahunan. Pembayaran DP 50% tersedia selain untuk sewa harian.
+- Pembayaran online melalui QRIS, unggah bukti pembayaran, dan verifikasi oleh resepsionis.
+- Booking walk-in dan pencatatan pembayaran tunai oleh resepsionis.
+- Dashboard admin dan resepsionis, serta email kuitansi dan pemberitahuan transaksi.
+- Booking online yang belum dibayar kedaluwarsa setelah satu jam.
 
-## Stack
+## Teknologi dan kebutuhan
 
-| Bagian | Teknologi |
+- PHP 8.1 atau lebih baru; ekstensi `pdo_mysql`, `mbstring`, dan `fileinfo`.
+- MySQL/MariaDB.
+- Apache dengan `mod_rewrite` aktif, atau web server lain yang mengarahkan request ke `public/index.php`.
+- Composer untuk memasang PHPMailer.
+
+Frontend menggunakan PHP, HTML, CSS, dan JavaScript tanpa framework CSS/JavaScript. Ikon Feather dan font Plus Jakarta Sans dimuat dari CDN.
+
+## Menjalankan secara lokal
+
+1. Arahkan document root virtual host ke folder `public/`. Pastikan rewrite URL aktif agar rute aplikasi selain `/` diarahkan ke `public/index.php`.
+2. Salin `.env.example` menjadi `.env`, lalu isi konfigurasi database dan aplikasi.
+3. Jalankan `composer install`.
+4. Buat database MySQL/MariaDB dan siapkan skema yang sesuai dengan kode aplikasi.
+5. Pastikan folder `storage/logs/` dan `storage/private/` dapat ditulis oleh PHP. Bukti pembayaran disimpan secara privat di `storage/private/bukti/`.
+6. Buka alamat lokal aplikasi di browser.
+
+### Penting: skema database
+
+`database/schema.sql` adalah dump dasar dan **belum sepenuhnya sesuai dengan kode saat ini**. Mengimpor file tersebut saja belum cukup untuk menjalankan aplikasi. Kode katalog dan admin saat ini juga menggunakan tabel/kolom yang tidak dibuat oleh dump tersebut, termasuk tabel `provinces`, `cities.province_id`, `provinces.image`, serta kolom `properties.kost_type`, `properties.image`, dan `room_classes.image`.
+
+Fitur reset password memerlukan tabel `password_resets`; definisinya tersedia di `database/migrations/create_password_resets.sql`. Migration `database/migrations/add_city_image.sql` ditujukan untuk database lama yang belum memiliki kolom `cities.image`; kolom itu sudah ada di dump dasar saat ini, jadi jangan jalankan migration tersebut setelah mengimpor dump tanpa memeriksa skema terlebih dahulu. Siapkan atau migrasikan database ke skema yang digunakan aplikasi sebelum menjalankan situs.
+
+## Konfigurasi `.env`
+
+| Variabel | Kegunaan |
 | --- | --- |
-| Backend | PHP Native, router buatan sendiri (`app/core/Router.php`) |
-| Database | MySQL/MariaDB (`database/schema.sql`) |
-| Email | PHPMailer (`composer.json`) |
-| Frontend | HTML dari PHP, CSS manual (tanpa framework), ikon Feather, font Plus Jakarta Sans |
-| Server lokal | Virtual host `kost-mandiri.test`, document root ke folder `public/` |
+| `APP_ENV` | Lingkungan aplikasi; gunakan `production` untuk lingkungan produksi. |
+| `APP_DEBUG` | Menampilkan detail error ketika bernilai `true`; matikan di produksi. |
+| `APP_URL` | URL dasar aplikasi, digunakan untuk link dan redirect. |
+| `APP_PUBLIC_URL` | URL publik untuk link reset password dalam email; wajib HTTPS ketika `APP_ENV=production`. |
+| `APP_TIMEZONE` | Zona waktu aplikasi; default `Asia/Jakarta`. |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` | Koneksi MySQL/MariaDB. |
+| `QRIS_IMAGE_URL` | Path lokal di bawah `/assets/` atau URL HTTPS untuk gambar QRIS. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `SMTP_FROM_NAME` | Pengiriman email reset password, notifikasi, pembatalan, dan kuitansi. |
+| `WA_OWNER_NUMBER` | Nomor WhatsApp pengelola untuk tautan bantuan. |
 
-Konfigurasi ada di `.env` (contoh: `.env.example`): `APP_*`, `DB_*`, `WA_OWNER_NUMBER`, `QRIS_IMAGE_URL`, `SMTP_*`.
+Lihat `.env.example` untuk nilai awal. Jangan masukkan kredensial produksi ke repositori.
 
----
+## Peran dan rute utama
 
-## Struktur folder
-
-```
-kost-mandiri/
-├── app/
-│   ├── controllers/   Catalog, Auth, Booking, Admin, Receptionist, Dashboard, Staff, Home
-│   ├── core/          Router.php
-│   ├── helpers/       auth, http, messaging, security, validation
-│   ├── middleware/    guards.php (auth, role, readonly, property, staff)
-│   ├── services/      BookingService, EmailService
-│   └── views/         halaman PHP (lihat tabel di bawah)
-├── config/            config.php, database.php
-├── cron/              expire_bookings.php (booking kedaluwarsa)
-├── database/          schema.sql, migrations/
-├── public/            document root
-│   ├── index.php
-│   └── assets/
-│       ├── css/       semua stylesheet (lihat bagian CSS)
-│       ├── js/        searchable-select.js (dropdown yang bisa diketik)
-│       └── img/       foto kota, provinsi, gedung, kelas, qris.jpeg
-├── routes/web.php     daftar route
-└── storage/           log dan bukti pembayaran (private)
-```
-
-Tabel database: `users`, `cities`, `properties`, `room_classes`, `room_units`, `price_matrices`, `bookings`, `payments`, `receptionist_staff`.
-
----
-
-## Peran dan halaman
-
-| Peran | URL utama | Keterangan |
+| Peran | Rute | Akses |
 | --- | --- | --- |
-| Pengunjung | `/`, `/katalog/gedung/{id}` | Katalog publik, bisa difilter kota, kelas kamar, jenis kost |
-| Penyewa (`tenant`) | `/tenant/bookings` | Checkout, upload bukti bayar, riwayat booking |
-| Resepsionis (`receptionist`) | `/resepsionis` | Verifikasi pembayaran, kasir, pembatalan |
-| Admin (`admin`) | `/admin` | Master data dan laporan transaksi (hanya baca) |
+| Pengunjung | `/`, `/katalog/gedung/{property_id}`, `/login`, `/register`, `/lupa-password` | Melihat katalog, masuk/daftar, dan meminta reset password. |
+| Penyewa (`tenant`) | `/tenant`, `/tenant/bookings` | Melihat dashboard dan booking, melihat detail, serta mengirim bukti pembayaran. |
+| Resepsionis (`receptionist`) | `/resepsionis` | Memilih petugas jaga, mengelola booking gedungnya, memverifikasi pembayaran, membatalkan booking, dan mencatat transaksi kasir. |
+| Admin (`admin`) | `/admin` | Mengelola master data dan melihat transaksi booking. Transaksi admin hanya-baca; verifikasi dilakukan resepsionis. |
 
-### Peta view ke CSS
+Rute katalog menerima filter `city_id`, `province_id`, `room_class`, dan `kost_type`. Rute checkout adalah `/booking/checkout/{unit_id}`. Rute bertanda peran memerlukan autentikasi dan dibatasi middleware sesuai perannya.
 
-Layout `app/views/layouts/main.php` selalu memuat `base.css`. CSS tambahan dikirim controller lewat `extraCss`.
+## Kedaluwarsa booking
 
-| Halaman | View | CSS tambahan |
-| --- | --- | --- |
-| Katalog (kota/gedung) | `catalog/index.php` | `filters.css`, `catalog.css` |
-| Detail gedung | `catalog/property.php` | `catalog.css` |
-| Login / Register | `auth/*.php` | `auth.css` |
-| Booking penyewa | `booking/*.php` | `booking.css` |
-| Dashboard | `dashboard.php`, `admin/dashboard.php`, `receptionist/dashboard.php` | `dashboard.css` |
-| Master data admin | `admin/master-data.php` | `masterdata.css` |
-| Transaksi admin, booking resepsionis | `admin/*`, `receptionist/bookings.php` | `filters.css`, `booking.css` |
+Booking online menahan unit selama satu jam sambil menunggu pembayaran. Proses kedaluwarsa juga dijalankan ketika beberapa halaman aplikasi dibuka. Untuk pemrosesan terjadwal, jalankan `php cron/expire_bookings.php` melalui CLI, misalnya sebagai tugas terjadwal berkala. Skrip ini hanya dapat dijalankan dari CLI dan mencatat error ke log aplikasi.
 
----
+## Struktur proyek
 
-## Panduan CSS
-
-Semua file ada di `public/assets/css/` dan **setiap aturan sudah diberi komentar fungsi** dalam bahasa Indonesia. Aturan di dalam `@media` diawali kata **"HP:"**.
-
-| File | Isi |
-| --- | --- |
-| `base.css` | Warna (variabel `--biru`, `--teks-abu`, dst.), header, `.card`, form, tombol, `.badge`, `.page-heading`, `.stats`/`.stat` |
-| `catalog.css` | Katalog: kartu kota, bulatan provinsi, kartu gedung, kartu kelas, dropdown yang bisa diketik, header katalog di HP |
-| `filters.css` | Form filter (Kota, Kelas kamar, Jenis kost, tombol Terapkan/Reset) |
-| `booking.css` | Detail booking dan gambar QRIS |
-| `auth.css` | Login dan register |
-| `dashboard.css` | Kartu statistik dan kartu menu dashboard |
-| `masterdata.css` | Navigasi tab, filter, dan form master data admin |
-
-### Breakpoint
-
-| Lebar | Dipakai untuk |
-| --- | --- |
-| `max-width: 900px` | Dashboard: statistik 2 kolom |
-| `max-width: 700px` | Layout HP umum (header, kartu, header katalog, filter) |
-| `max-width: 600px` | Kartu kota/gedung/kelas diperkecil |
-| `max-width: 480px` | Kartu login/register |
-
-Perangkat uji: **Samsung Galaxy A55, 360 x 800** di DevTools mode responsif.
-
-### Konvensi
-
-- Nama class memakai bahasa Inggris atau campuran, huruf kecil dengan tanda hubung (`.city-card`, `.class-grid`); varian memakai `--` (`.filters--compact`, `.page-heading--catalog`).
-- Aturan khusus halaman dibatasi dengan class modifier supaya tidak merusak halaman lain. Contoh: `.stats` dipakai juga di dashboard, jadi gaya mungil di HP hanya berlaku untuk `.page-heading--catalog .stats`.
-- Ukuran font di HP memakai `rem` kecil (0.58 sampai 0.85rem) untuk komponen padat; judul 1.15 sampai 1.3rem.
-- Foto selalu `object-fit: cover` supaya di-crop rapi dan tidak gepeng.
-- File berakhiran baris **CRLF** (Windows). Pertahankan saat mengedit lewat skrip.
-
----
-
-## Desain responsive HP (keputusan yang sudah diambil)
-
-**Halaman katalog (`/`)**
-- Judul "Katalog Kost" di kiri, tiga statistik mungil (Gedung, Kota, Unit tersedia) di kanan, tanpa ikon. Paragraf pengantar di bawahnya selebar penuh. Dikendalikan class `page-heading--catalog`.
-- Filter: tiga dropdown sebaris, tombol "Terapkan filter" dan "Reset" selebar baris dengan tulisan kecil (0.75rem, tinggi 36px). Dikendalikan `.filters--compact`.
-- Kartu kota: 3 kolom, foto 80px menempel penuh ke tepi (tanpa padding), harga rentang dipecah dua baris (`.price-min` dan `.price-max`) agar tidak terpotong.
-- Kartu gedung (setelah pilih kota): 1 kolom, foto 110px.
-
-**Halaman detail gedung (`/katalog/gedung/{id}`)**
-- Kartu info gedung dipadatkan: foto 130px, judul 1.15rem. Dikendalikan `.property-info`.
-- Kartu kelas kamar: **1 kolom** (sempat dicoba 3 kolom, hasilnya terlalu sempit). Foto di atas 130px, fasilitas dan harga 0.8rem, baris unit: nomor kamar kiri, tombol "Pesan kamar" kanan. Dikendalikan `.class-grid`.
-
-### Class penting yang harus ada di markup
-
-| View | Elemen | Class wajib |
-| --- | --- | --- |
-| `catalog/index.php` | `<section>` header | `page-heading page-heading--catalog` |
-| `catalog/index.php` | harga rentang kartu kota | `<span class="price-min">` dan `<span class="price-max">` |
-| `catalog/property.php` | `<section>` info gedung | `card property-info` |
-| `catalog/property.php` | `<div>` pembungkus kartu kelas | `stack class-grid` |
-
-Kalau class di atas hilang, CSS HP **tidak akan terpakai** dan tampilan kembali seperti desktop.
-
----
-
-## Cara menjalankan dan mengecek
-
-1. Arahkan virtual host `kost-mandiri.test` ke folder `public/`.
-2. Salin `.env.example` jadi `.env`, isi koneksi database, lalu impor `database/schema.sql`.
-3. Jalankan `composer install` untuk PHPMailer.
-4. Buka di Chrome, tekan F12, pilih mode responsif 360 x 800.
-
-### Cache CSS
-
-`layouts/main.php` memuat CSS dengan `?v=N` (saat ini `?v=4`). **Naikkan angka itu setiap kali CSS berubah** (ada dua tempat: `base.css` dan perulangan `extraCss`), atau tekan **Ctrl+Shift+R**. Kalau tampilan HP "tidak berubah", penyebab paling sering adalah cache atau file di folder lain.
-
----
-
-## Panduan menulis prompt
-
-Supaya hasil dari AI tepat dan tidak perlu bolak-balik:
-
-1. **Lampirkan file yang dimaksud**, bukan hanya screenshot: view PHP-nya (mis. `catalog/property.php`) dan CSS terkait. Markup dan CSS harus cocok, jadi keduanya perlu dilihat.
-2. **Sebutkan halaman dan lebar layar**, mis. "halaman detail gedung, 360px".
-3. **Gunakan nama elemen yang ada di screenshot** ("kartu kelas", "tombol Reset", "angka statistik"), dan jelaskan hasil yang diinginkan (jumlah kolom, besar kecil, posisi).
-4. **Minta perubahan terbatas pada HP** bila desktop sudah bagus: "hanya di `@media (max-width: 600px)`".
-5. **Minta komentar fungsi** untuk aturan CSS baru, sesuai gaya file yang ada.
-6. Setelah menerapkan, **hard refresh** dan kirim screenshot terbaru kalau masih ada yang aneh. Sertakan juga DevTools tab Styles bila perlu.
-
-### Template prompt
-
-```
-Halaman: <katalog / detail gedung / login / ...>
-Lebar: 360px (HP)
-File terlampir: <view.php>, <file.css>
-
-Yang ingin diubah:
-- <elemen> : <hasil yang diinginkan>
-
-Batasan:
-- Desktop tidak boleh berubah
-- Tambahkan komentar fungsi di setiap aturan baru
+```text
+app/
+  controllers/   Pengendali katalog, autentikasi, booking, akun, admin, dan resepsionis
+  core/          Router
+  helpers/       Helper HTTP, autentikasi, keamanan, validasi, dan pesan
+  middleware/    Pemeriksaan autentikasi, peran, gedung, petugas, dan akses baca
+  services/      Logika booking dan pengiriman email
+  views/         Template PHP untuk halaman aplikasi
+config/          Konfigurasi aplikasi dan koneksi database
+cron/            Tugas pemeliharaan booking kedaluwarsa
+database/        Dump dasar dan migration SQL
+public/          Document root, front controller, CSS, JavaScript, dan gambar
+routes/web.php   Definisi rute GET/POST
+storage/         Log aplikasi dan file privat
 ```
 
-### Contoh prompt yang baik
-
-> "Di halaman detail gedung (360px), kartu kelas dibuat 1 kolom dengan foto di atas. Tombol 'Pesan kamar' diperkecil. Desktop jangan berubah. Terlampir `property.php` dan `catalog.css`."
-
----
-
-## Riwayat perubahan responsive HP
-
-| Area | Perubahan | File |
-| --- | --- | --- |
-| Header katalog | Statistik mungil di kanan judul, tanpa ikon | `catalog.css`, `catalog/index.php` |
-| Kartu kota | Harga dirapikan jadi 2 baris, font diperkecil | `catalog.css`, `catalog/index.php` |
-| Kartu kota | Celah gambar dihapus (padding dibuang, foto `absolute` + `inset: 0`) | `catalog.css` |
-| Filter | Tulisan, ikon, dan tinggi tombol Terapkan/Reset diperkecil | `filters.css` |
-| Kartu gedung | Padding, foto, dan font diperkecil (daftar dan detail) | `catalog.css` |
-| Kartu kelas | Dicoba 3 kolom, lalu dikembalikan ke 1 kolom | `catalog.css`, `catalog/property.php` |
-| Lint | Tambah `line-clamp` standar di samping `-webkit-line-clamp` | `catalog.css` |
-| Dokumentasi | Komentar fungsi di semua aturan CSS | semua `*.css` |
-| Cache | `?v=1` dinaikkan jadi `?v=2` | `layouts/main.php` |
-
----
-
-## Catatan dan batasan
-
-- Perubahan tampilan dicek lewat render statis di Chrome headless, **belum selalu diuji langsung di server PHP**. Selalu verifikasi di browser.
-- Modul transaksi admin bersifat hanya baca (middleware `readonly`); aksi persetujuan ada di sisi resepsionis.
-- `app/views/partials/` masih kosong; potongan tampilan yang berulang masih ditulis langsung di tiap view.
+Stylesheet halaman berada di `public/assets/css/`; skrip halaman berada di `public/assets/js/`. View memakai layout bersama `app/views/layouts/main.php`.
