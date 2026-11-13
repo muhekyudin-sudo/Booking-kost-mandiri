@@ -1,0 +1,288 @@
+/* dashboard.css — dashboard admin dan dashboard resepsionis */
+/* Judul bagian di dashboard */
+.dash-title {
+  font-size: 1.05rem;
+  margin: 28px 0 12px;
+}
+
+/* Kisi 4 kartu statistik dashboard */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+/* Kartu statistik dashboard lebih lega */
+.dash-stats .stat {
+  padding: 18px;
+  gap: 14px;
+}
+/* Angka statistik dashboard lebih besar */
+.dash-stats .stat strong {
+  font-size: 1.6rem;
+}
+
+/* Kisi kartu menu: kolom menyesuaikan lebar layar */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 20px;
+}
+/* Kartu menu yang bisa diklik (ikon, judul, deskripsi, panah) */
+.menu-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 2px 10px #0000000f;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+/* Kartu menu naik sedikit saat di-hover */
+.menu-card:hover,
+.menu-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px #00000026;
+}
+/* Kotak ikon di kartu menu */
+.menu-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+/* Ukuran ikon di kartu menu */
+.menu-card .stat-icon .feather {
+  width: 22px;
+  height: 22px;
+}
+/* Judul menu */
+.menu-card h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+/* Mencegah isi kartu menu memaksa lebar kartu */
+.menu-card > div {
+  min-width: 0;
+}
+/* Deskripsi menu */
+.menu-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--teks-abu);
+}
+/* Panah di ujung kanan kartu menu */
+.menu-card .arrow {
+  margin-left: auto;
+  color: var(--teks-abu);
+  flex-shrink: 0;
+}
+/* Badge di samping judul kartu menu */
+.menu-card h3 .badge {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
+
+/* Grafik pendapatan admin */
+.revenue-card {
+  margin-top: 24px;
+  padding: 22px 24px 12px;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  border-radius: 18px;
+  box-shadow: 0 2px 10px #0000000f;
+}
+.revenue-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.revenue-heading h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+.revenue-heading p {
+  margin: 0;
+  color: var(--teks-abu);
+  font-size: 0.85rem;
+}
+.revenue-year {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: var(--teks-abu);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.revenue-chart {
+  width: 100%;
+  margin-top: 18px;
+}
+.revenue-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.chart-gridline {
+  stroke: #e8edf3;
+  stroke-width: 1;
+}
+.chart-y-label,
+.chart-x-label {
+  fill: var(--teks-abu);
+  font-family: inherit;
+  font-size: 12px;
+}
+.revenue-line {
+  fill: none;
+  stroke: #2563eb;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+.revenue-point {
+  fill: #fff;
+  stroke: #2563eb;
+  stroke-width: 3;
+}
+
+/* Grafik: dua SVG dengan viewBox berbeda; versi HP disembunyikan di layar lebar */
+.revenue-chart .revenue-svg--mobile {
+  display: none;
+}
+
+/* HP/tablet: statistik menjadi 2 kolom pada layar menengah */
+@media (max-width: 900px) {
+  /* HP/tablet: kisi statistik menggunakan 2 kolom */
+  .dash-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* HP: statistik ringkas dua kolom dan komponen dashboard menyesuaikan layar kecil */
+@media (max-width: 600px) {
+  /* HP: formulir aksi pada judul memenuhi lebar wadah */
+  .page-heading form {
+    width: 100%;
+  }
+  /* HP: tombol aksi pada judul memenuhi lebar wadah */
+  .page-heading form button {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  /* HP: kisi statistik menggunakan dua kolom agar ringkasan tetap ringkas */
+  .dash-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  /* HP: kartu statistik menyusun ikon dan angka secara vertikal */
+  .dash-stats .stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+  /* HP: isi statistik dapat menyusut tanpa mendorong lebar kartu */
+  .dash-stats .stat > div {
+    min-width: 0;
+  }
+  /* HP: label statistik membungkus teks yang panjang */
+  .dash-stats .stat small {
+    overflow-wrap: anywhere;
+  }
+  /* HP: jarak judul bagian dibuat lebih rapat */
+  .dash-title {
+    margin-top: 24px;
+  }
+  /* HP: kartu menu menggunakan padding dan jarak yang lebih kecil */
+  .menu-card {
+    padding: 16px;
+    gap: 12px;
+  }
+  /* HP: badge menu ditempatkan di baris tersendiri */
+  .menu-card h3 .badge {
+    display: table;
+    margin: 6px 0 0;
+  }
+  /* HP: judul grafik dan label tahun disusun vertikal */
+  .revenue-heading {
+    flex-direction: column;
+    gap: 8px;
+  }
+  /* HP: padding kartu grafik diperkecil */
+  .revenue-card {
+    padding: 18px 14px 10px;
+  }
+  /* HP: area grafik dibatasi agar tidak meluber dari kartu */
+  .revenue-chart {
+    max-width: 100%;
+  }
+}
+
+/* HP (<=700px): tampilkan grafik versi HP agar muat tanpa scroll horizontal */
+@media (max-width: 700px) {
+  /* HP: sembunyikan grafik desktop */
+  .revenue-chart .revenue-svg--desktop {
+    display: none;
+  }
+  /* HP: tampilkan grafik HP, lebar penuh tetapi dibatasi dan ditengahkan */
+  .revenue-chart .revenue-svg--mobile {
+    display: block;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+  /* HP: ukuran huruf label sumbu grafik HP (satuan viewBox 320) */
+  .revenue-svg--mobile .chart-y-label,
+  .revenue-svg--mobile .chart-x-label {
+    font-size: 10px;
+  }
+  /* HP: garis dan titik grafik HP sedikit lebih tipis */
+  .revenue-svg--mobile .revenue-line,
+  .revenue-svg--mobile .revenue-point {
+    stroke-width: 2.5;
+  }
+}
+
+/* HP: komponen kartu dirapatkan lagi untuk layar sangat kecil */
+@media (max-width: 380px) {
+  /* HP: rapatkan kisi statistik untuk lebar layar yang sangat kecil */
+  .dash-stats {
+    gap: 8px;
+  }
+  /* HP: perkecil padding kartu statistik agar isi tetap muat */
+  .dash-stats .stat {
+    padding: 10px;
+  }
+  /* HP: gunakan ikon yang lebih kecil pada kartu statistik */
+  .dash-stats .stat-icon {
+    width: 30px;
+    height: 30px;
+  }
+  /* HP: angka statistik diperkecil agar tidak memenuhi kartu */
+  .dash-stats .stat strong {
+    font-size: 1.35rem;
+  }
+  /* HP: kurangi padding dan jarak kartu menu */
+  .menu-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  /* HP: perkecil ikon menu agar teks mendapat lebih banyak ruang */
+  .menu-card .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+  /* HP: rapatkan badge tahun grafik */
+  .revenue-year {
+    padding: 5px 9px;
+    font-size: 0.8rem;
+  }
+}

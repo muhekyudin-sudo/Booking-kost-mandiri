@@ -1,0 +1,789 @@
+/* catalog.css — halaman katalog (index) dan detail gedung (property) */
+/* Label jenis kost di kartu gedung */
+.kost-type {
+  display: inline-block;
+  margin: 2px 0 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+/* Warna label jenis kost: putra (biru), putri (merah muda), bebas (hijau) */
+.kost-type-putra { background: #e3eefc; color: #1b4f9c; }
+.kost-type-putri { background: #fde8f1; color: #a3205f; }
+.kost-type-bebas { background: #e8f5e9; color: #2e6b34; }
+
+/* Pembungkus dropdown dan ikon di dalam filter */
+.select-wrap {
+  position: relative;
+  grid-row: 2;
+}
+/* Ikon di sisi kiri dropdown */
+.select-wrap .feather {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--teks-abu);
+  pointer-events: none;
+}
+/* Ruang kiri dropdown untuk ikon */
+.select-wrap select {
+  padding-left: 42px;
+}
+/* Dropdown yang bisa diketik (kotak ketik + daftar rekomendasi) */
+.select-wrap input.combo-input {
+  padding-left: 42px;
+  padding-right: 38px;
+  margin: 0;
+  height: 44px;
+  cursor: text;
+  /* panah kecil di kanan, menggantikan panah bawaan <select> */
+  background: #fff
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2352657d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
+}
+/* Daftar saran dropdown yang bisa diketik (melayang di bawah kotak) */
+.combo-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px #0000001f;
+}
+/* Daftar saran disembunyikan saat tidak dipakai */
+.combo-list[hidden] {
+  display: none;
+}
+/* Satu pilihan di daftar saran */
+.combo-list li {
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+/* Pilihan yang sedang disorot (mouse atau keyboard) */
+.combo-list li.is-active {
+  background: var(--biru-muda);
+}
+/* Pilihan yang sedang terpilih (dicetak tebal) */
+.combo-list li.is-current {
+  font-weight: 700;
+}
+/* Pesan “tidak ada hasil” di daftar saran */
+.combo-list li.is-empty {
+  color: var(--teks-abu);
+  cursor: default;
+}
+/* Sorotan huruf yang cocok dengan ketikan */
+.combo-list mark {
+  background: var(--oranye-lembut);
+  color: inherit;
+  font-weight: 700;
+  border-radius: 3px;
+}
+
+/* ---------- 8. Kartu gedung, kelas, harga, unit ---------- */
+/* Ringkasan satu kelas kamar di kartu gedung (ada garis pemisah di atas) */
+.class-summary {
+  border-top: 1px solid var(--garis-halus);
+  margin: 16px 0;
+  padding-top: 8px;
+}
+/* Judul kelas dalam ringkasan */
+.class-summary h3 {
+  margin-bottom: 4px;
+}
+/* Teks kecil abu di atas judul (mis. nama kota) */
+.eyebrow {
+  color: var(--teks-abu);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Daftar harga (harian, mingguan, bulanan, tahunan) berjajar */
+.price-list {
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+/* Daftar unit kamar yang tersedia */
+.unit-list {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Bulatan provinsi ---------- */
+/* Baris bulatan provinsi yang bisa digeser ke samping */
+.province-row {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto; /* bisa digeser ke samping kalau banyak */
+  padding: 20px 4px 16px;
+  margin-bottom: 8px;
+}
+/* Satu bulatan provinsi (foto dan nama) */
+.province-item {
+  flex: 0 0 auto;
+  width: 84px;
+  text-align: center;
+  color: inherit;
+  text-decoration: none;
+}
+/* Lingkaran foto provinsi */
+.province-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--biru), #43639a);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  border: 3px solid transparent;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  overflow: hidden;
+}
+/* Foto provinsi mengisi lingkaran dan dipotong rapi */
+.province-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* foto di-crop otomatis, tidak gepeng */
+  display: block;
+}
+/* Efek naik sedikit saat bulatan provinsi disentuh */
+.province-item:hover .province-circle {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px #1b365d33;
+}
+/* Provinsi yang dipilih diberi bingkai oranye */
+.province-item.active .province-circle {
+  border-color: var(--oranye);
+}
+/* Nama provinsi di bawah lingkaran */
+.province-name {
+  display: block;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--teks);
+}
+/* Nama provinsi yang dipilih dicetak tebal */
+.province-item.active .province-name {
+  font-weight: 700;
+}
+/* Info “Menampilkan kota di …” setelah memilih provinsi */
+.province-filter-info {
+  margin: 0 0 16px;
+  color: var(--teks-abu);
+}
+/* Kisi kartu kota: 3 kolom */
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+/* Kartu kota yang bisa diklik: foto di atas, info di bawah */
+.city-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  box-shadow: 0 2px 10px #0000000f;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  position: relative;
+}
+/* Kartu kota membesar dan bayangannya menebal saat di-hover */
+.city-card:hover,
+.city-card:focus-visible {
+  transform: scale(1.03); /* membesar 3% */
+  box-shadow: 0 10px 24px #00000026; /* bayangan lebih tebal, kesan terangkat */
+  z-index: 1; /* tampil di atas kartu lain */
+}
+/* Area foto di kartu kota (latar biru kalau tidak ada foto) */
+.city-card-media {
+  position: relative;
+  display: grid;
+  flex: 0 0 195px;
+  overflow: hidden;
+  place-items: center;
+  background-color: #1f3a5f;
+  background-image: linear-gradient(135deg, #1f3a5f, #4a6fa5);
+  background-position: center;
+  background-size: cover;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 1px 4px #0008;
+}
+/* Crop foto kota secara konsisten tanpa mengubah proporsi gambar. */
+.city-card-media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Isi teks kartu kota */
+.city-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 18px 20px 16px;
+}
+/* Nama kota di kartu */
+.city-card-content h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+/* Deskripsi singkat kota */
+.city-description {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+/* Keterangan harga “Bulanan mulai dari” */
+.city-price {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--teks-abu);
+}
+/* Angka harga berwarna biru */
+.city-price strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1rem;
+  color: var(--biru);
+}
+/* Baris bawah kartu kota: jumlah gedung dan unit tersedia */
+.city-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: auto 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--garis-halus);
+  font-size: 0.85rem;
+  color: var(--teks-abu);
+}
+/* Jumlah unit tersedia berwarna hijau */
+.city-stats .available {
+  color: var(--hijau);
+  font-weight: 600;
+}
+/* Panah di ujung kanan kartu kota */
+.city-stats .arrow {
+  margin-left: auto;
+}
+/* Judul daftar gedung dan link “Semua kota” */
+.property-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0 12px;
+}
+/* Judul daftar gedung tanpa margin */
+.property-list-heading h2 {
+  margin: 0;
+}
+/* Kisi kartu gedung: kolom menyesuaikan lebar layar */
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+/* Kartu gedung di daftar katalog */
+.property-card {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+/* Foto di kartu gedung: menempel ke tepi atas kartu, seperti kartu kota */
+.property-card-media {
+  display: grid;
+  place-items: center;
+  height: 180px;
+  margin: -20px -20px 16px; /* batalkan padding .card (20px) */
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  background-image: linear-gradient(135deg, #1f3a5f, #4a6fa5);
+  color: #fff;
+  font-size: 2rem;
+}
+/* Foto kartu gedung dipotong rapi */
+.property-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* foto di-crop rapi, tidak gepeng */
+  display: block;
+}
+/* Foto besar di halaman detail gedung */
+.property-hero {
+  display: block;
+  width: 100%;
+  height: 260px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+/* Kartu kelas kamar: info di kiri, foto di kanan */
+.class-card-top.has-photo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 38%);
+  gap: 24px;
+  align-items: stretch;            /* foto setinggi bagian info */
+}
+/* Kotak foto kelas kamar */
+.class-card-photo {
+  position: relative;
+  min-height: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+/* Foto kelas mengisi kotak dan dipotong rapi */
+.class-card-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;               /* foto di-crop rapi, tidak gepeng */
+}
+
+/* Layar kecil (HP): foto pindah ke atas, info di bawahnya */
+@media (max-width: 700px) {
+  /* HP: info dan foto kelas ditumpuk 1 kolom */
+  .class-card-top.has-photo {
+    grid-template-columns: 1fr;
+  }
+  /* HP: foto kelas di atas dengan tinggi 200px */
+  .class-card-photo {
+    order: -1;
+    min-height: 0;
+    height: 200px;
+  }
+}
+/* Jarak nama gedung di kartu gedung */
+.property-card h3 {
+  margin: 4px 0;
+}
+/* Wadah ringkasan kelas di kartu gedung */
+.property-classes {
+  margin-bottom: 16px;
+}
+/* Jarak antar ringkasan kelas */
+.property-classes .class-summary {
+  margin: 10px 0;
+}
+/* Nama kelas di ringkasan */
+.property-classes h4 {
+  margin: 0;
+}
+/* Tombol “Lihat kamar dan pesan” di dasar kartu gedung */
+.property-card > .button {
+  margin-top: auto;
+  align-self: flex-start;
+}
+/* Satu baris unit kamar: nomor kamar di kiri, tombol pesan di kanan */
+.unit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--garis-halus);
+  padding-top: 8px;
+}
+/* Tombol di baris unit tanpa margin */
+.unit .button,
+.unit button {
+  margin: 0;
+}
+
+/* ---------- Responsif katalog ---------- */
+@media (max-width: 700px) {
+  /* HP: kartu gedung 1 kolom */
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* HP: nomor kamar dan tombol ditumpuk */
+  .unit {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  /* .card di HP berpadding 16px, jadi foto menempel dengan margin -16px */
+  .property-card-media {
+    height: 160px;
+    margin: -16px -16px 16px;
+    border-radius: 14px 14px 0 0;
+  }
+  /* HP: foto utama gedung lebih pendek */
+  .property-hero {
+    height: 200px;
+  }
+  /* HP: judul daftar gedung boleh turun baris */
+  .property-list-heading {
+    flex-wrap: wrap;
+  }
+
+  /* Dropdown filter ringkas: tanpa ikon, teks lebih kecil, supaya 3 muat sebaris */
+  .filters--compact .select-wrap .feather {
+    display: none;
+  }
+  .filters--compact .select-wrap select,
+  .filters--compact .select-wrap input.combo-input {
+    height: 40px;
+    padding: 0 16px 0 6px; /* ruang kanan kecil untuk panah */
+    font-size: 0.72rem;
+    text-overflow: ellipsis;
+    /* panah kecil sendiri (pengganti panah bawaan yang lebar) */
+    -webkit-appearance: none;
+    appearance: none;
+    background: #fff
+      url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2352657d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+      no-repeat right 5px center;
+  }
+}
+
+/* Kartu kota tetap 3 kolom; di HP dipadatkan jadi kartu mungil */
+@media (max-width: 600px) {
+  /* HP: jarak antar kartu kota dirapatkan */
+  .city-grid {
+    gap: 8px;
+  }
+  /* HP: kartu kota lebih kecil */
+  .city-card {
+    min-height: 0;
+    border-radius: 12px;
+  }
+  /* HP: foto kartu kota setinggi 80px */
+  .city-card-media {
+    flex: 0 0 80px;
+    padding: 0;
+    font-size: 0.8rem;
+  }
+  /* HP: padding isi kartu kota dikecilkan */
+  .city-card-content {
+    padding: 8px;
+  }
+  /* HP: nama kota lebih kecil */
+  .city-card-content h2 {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+  }
+  /* HP: deskripsi kota disembunyikan */
+  .city-description {
+    display: none;
+  }
+  /* HP: teks keterangan harga lebih kecil */
+  .city-price {
+    margin: 0 0 6px;
+    font-size: 0.6rem;
+    line-height: 1.3;
+  }
+  /* HP: angka harga lebih kecil dan tidak terpotong */
+  .city-price strong {
+    margin-top: 1px;
+    font-size: 0.66rem;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+  /* harga minimum dan maksimum tampil di baris terpisah, tidak terpotong */
+  .city-price .price-min,
+  .city-price .price-max {
+    display: block;
+  }
+  .city-price .price-max {
+    font-weight: 600;
+    color: var(--teks-abu);
+  }
+  /* HP: baris jumlah gedung dan unit boleh membungkus */
+  .city-stats {
+    flex-wrap: wrap;
+    gap: 0 4px;
+    padding-top: 6px;
+    font-size: 0.65rem;
+    line-height: 1.3;
+  }
+  .city-stats [aria-hidden="true"] {
+    display: none; /* titik pemisah dan panah disembunyikan */
+  }
+}
+/* Matikan animasi bagi pengguna yang memilih mengurangi gerakan */
+@media (prefers-reduced-motion: reduce) {
+  /* Hentikan transisi kartu kota */
+  .city-card {
+    transition: none;
+  }
+  /* Kartu kota tidak membesar saat di-hover */
+  .city-card:hover,
+  .city-card:focus-visible {
+    transform: none;
+  }
+}
+
+/* ---------- Header katalog di HP: judul di kiri, statistik mungil di kanan ---------- */
+@media (max-width: 700px) {
+  /* HP: header jadi grid dengan judul di kiri dan statistik di kanan */
+  .page-heading--catalog {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 0;
+  }
+  /* pembungkus h1 + paragraf dilepas supaya h1 dan paragraf bisa diatur di grid */
+  .page-heading--catalog > div:first-child {
+    display: contents;
+  }
+  /* Judul “Katalog Kost” di baris 1, kiri */
+  .page-heading--catalog h1 {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    font-size: 1.3rem;
+    white-space: nowrap;
+  }
+  /* Paragraf pengantar di baris 2, selebar penuh */
+  .page-heading--catalog p {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  /* Statistik di baris 1, kanan */
+  .page-heading--catalog .stats {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    width: auto;
+    gap: 4px;
+  }
+  /* Kotak statistik mungil (label di atas angka) */
+  .page-heading--catalog .stats .stat {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 4px 7px;
+    border-radius: 8px;
+    box-shadow: none;
+    text-align: center;
+  }
+  /* Ikon statistik disembunyikan agar hemat tempat */
+  .page-heading--catalog .stat-icon {
+    display: none;
+  }
+  /* Label statistik kecil */
+  .page-heading--catalog .stat small {
+    font-size: 0.58rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+  /* Angka statistik */
+  .page-heading--catalog .stat strong {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+}
+
+/* ---------- HP: kartu gedung dan kelas kamar diperkecil ---------- */
+@media (max-width: 600px) {
+  /* Daftar gedung (halaman katalog setelah pilih kota) */
+  .property-list-heading h2 {
+    font-size: 1rem;
+  }
+  /* HP: link “Semua kota” lebih kecil */
+  .property-list-heading a {
+    font-size: 0.8rem;
+  }
+  /* HP: kartu gedung lebih kecil */
+  .property-card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  /* HP: foto kartu gedung setinggi 110px dan menempel ke tepi kartu */
+  .property-card-media {
+    height: 110px;
+    margin: -12px -12px 10px;
+    border-radius: 12px 12px 0 0;
+  }
+  /* HP: nama kota di kartu gedung */
+  .property-card .eyebrow {
+    font-size: 0.7rem;
+  }
+  /* HP: nama gedung */
+  .property-card h3 {
+    margin: 2px 0;
+    font-size: 0.95rem;
+  }
+  /* HP: alamat dan teks keterangan */
+  .property-card p {
+    margin: 4px 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  /* HP: label jenis kost */
+  .property-card .kost-type {
+    margin: 2px 0 4px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+  }
+  /* HP: badge booking online */
+  .property-card .badge {
+    padding: 2px 8px;
+    font-size: 0.68rem;
+  }
+  /* HP: jarak ringkasan kelas */
+  .property-card .property-classes {
+    margin-bottom: 10px;
+  }
+  /* HP: ringkasan kelas lebih rapat */
+  .property-card .class-summary {
+    margin: 6px 0;
+    padding-top: 6px;
+  }
+  /* HP: nama kelas di ringkasan */
+  .property-card .class-summary h4 {
+    font-size: 0.78rem;
+  }
+  /* HP: tombol “Lihat kamar dan pesan” lebih kecil */
+  .property-card > .button {
+    padding: 7px 12px;
+    font-size: 0.75rem;
+    border-radius: 10px;
+  }
+
+  /* Detail gedung: kartu info gedung */
+  .property-info {
+    padding: 12px;
+  }
+  /* HP: foto utama detail gedung setinggi 130px */
+  .property-info .property-hero {
+    height: 130px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+  /* HP: nama gedung di halaman detail */
+  .property-info h1 {
+    margin: 2px 0 6px;
+    font-size: 1.15rem;
+  }
+  /* HP: teks alamat dan deskripsi gedung */
+  .property-info p {
+    margin: 4px 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+  /* HP: nama kota di atas nama gedung */
+  .property-info .eyebrow {
+    font-size: 0.7rem;
+  }
+  /* HP: label jenis kost dan badge booking online */
+  .property-info .kost-type,
+  .property-info .badge {
+    padding: 2px 8px;
+    font-size: 0.68rem;
+  }
+
+  /* Detail gedung: kelas kamar, 1 kolom, ukuran ringkas tapi tetap nyaman dibaca */
+  .class-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  /* HP: kartu kelas kamar */
+  .class-grid .class-card {
+    margin: 0;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  /* HP: isi kartu kelas tanpa jarak antar bagian */
+  .class-grid .class-card-top.has-photo {
+    gap: 0;
+  }
+  /* HP: foto kelas menempel ke tepi atas kartu, tinggi 130px */
+  .class-grid .class-card-photo {
+    order: -1;
+    height: 130px;
+    min-height: 0;
+    margin: -12px -12px 10px;
+    border-radius: 12px 12px 0 0;
+  }
+  /* HP: nama kelas */
+  .class-grid .class-card h2 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+  }
+  /* HP: judul “Fasilitas”, “Harga sewa”, “Unit tersedia” */
+  .class-grid .class-card h3 {
+    margin: 10px 0 4px;
+    font-size: 0.8rem;
+    color: var(--teks-abu);
+  }
+  /* HP: deskripsi kelas */
+  .class-grid .class-card p {
+    margin: 0 0 4px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+  /* HP: daftar fasilitas */
+  .class-grid .class-card ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  /* HP: daftar harga sewa */
+  .class-grid .price-list {
+    gap: 4px 14px;
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+  }
+  /* HP: jarak antar unit kamar */
+  .class-grid .unit-list {
+    gap: 6px;
+  }
+  /* HP: baris unit: nomor kamar kiri, tombol kanan */
+  .class-grid .unit {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+    font-size: 0.8rem;
+  }
+  /* HP: tombol “Pesan kamar” lebih ramping */
+  .class-grid .unit .button,
+  .class-grid .unit button {
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    line-height: 1.25;
+    text-align: center;
+  }
+}

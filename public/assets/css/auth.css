@@ -1,0 +1,278 @@
+/* auth.css — halaman login dan register */
+/* Kartu putih di tengah halaman login dan register */
+.auth-card {
+  max-width: 440px;
+  margin: 32px auto;
+  padding: 36px 32px 28px;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px #1b365d14;
+}
+/* Baris atas kartu: ikon dan nama */
+.auth-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+/* Kotak ikon di kiri */
+.auth-badge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: #e3ecea;
+  color: var(--biru);
+}
+/* Teks kecil huruf kapital di atas judul */
+.auth-eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b7a90;
+}
+/* Judul kecil di bawah teks kapital */
+.auth-eyebrow-title {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--biru);
+}
+/* Judul besar (Masuk atau Daftar) */
+.auth-title {
+  margin: 32px 0 6px;
+  font-size: 1.85rem;
+  color: var(--biru);
+}
+/* Kalimat pengantar di bawah judul */
+.auth-sub {
+  margin: 0 0 28px;
+  font-size: 0.95rem;
+  color: var(--teks-abu);
+}
+
+/* Kolom isian */
+/* Pembungkus satu isian: label dan input */
+.auth-field {
+  margin-bottom: 18px;
+}
+/* Label isian */
+.auth-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--biru);
+}
+/* Baris label dan link (mis. Lupa password) */
+.auth-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+/* Link kecil di baris label */
+.auth-label-row a {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--biru);
+  text-decoration: none;
+}
+/* Garis bawah saat link di-hover */
+.auth-label-row a:hover {
+  text-decoration: underline;
+}
+/* Pembungkus input agar ikon bisa diletakkan di dalam kotak */
+.auth-input {
+  position: relative;
+}
+/* Ikon di sisi kiri input */
+.auth-input .feather {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  color: #8b97a8;
+  pointer-events: none;
+}
+/* Kotak isian (email, password, dsb.) */
+.auth-input input {
+  height: 52px;
+  margin: 0;
+  padding: 0 50px;
+  background: #fcfbf9;
+  border: 1px solid var(--garis-halus);
+  border-radius: 14px;
+  font-size: 0.95rem;
+}
+/* Warna teks contoh (placeholder) */
+.auth-input input::placeholder {
+  color: #a3adbb;
+}
+/* Efek saat input sedang dipilih */
+.auth-input input:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--biru);
+  box-shadow: 0 0 0 3px #1b365d1f;
+}
+
+/* Tombol mata */
+/* Tombol mata (tampilkan atau sembunyikan password) di kanan input */
+.auth-input .auth-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0;
+  padding: 0;
+  background: transparent;
+  color: #8b97a8;
+  border-radius: 10px;
+}
+/* Warna tombol mata saat di-hover */
+.auth-input .auth-toggle:hover {
+  background: var(--biru-muda);
+  color: var(--biru);
+}
+/* Ikon di dalam tombol mata */
+.auth-input .auth-toggle .feather {
+  position: static;
+  margin: 0;
+}
+/* Sembunyikan ikon mata yang sedang tidak aktif */
+.auth-input .auth-toggle [hidden] {
+  display: none;
+}
+
+/* Tombol masuk dan teks bawah */
+/* Tombol Masuk atau Daftar selebar kartu */
+.auth-submit {
+  width: 100%;
+  height: 52px;
+  margin: 8px 0 0;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 10px 20px #1b365d40;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+/* Tombol naik sedikit saat di-hover */
+.auth-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px #1b365d4d;
+}
+/* Teks di bawah kartu (link ke halaman lain) */
+.auth-foot {
+  margin: 28px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--teks-abu);
+}
+/* Link di teks bawah kartu */
+.auth-foot a {
+  color: var(--biru);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Petunjuk kecil di bawah input */
+.auth-hint {
+  margin: 6px 2px 0;
+  font-size: 0.8rem;
+  color: var(--teks-abu);
+}
+
+/* HP: kartu dipadatkan */
+@media (max-width: 480px) {
+  /* HP: kartu lebih kecil */
+  .auth-card {
+    margin: 8px auto;
+    padding: 20px 16px 18px;
+    border-radius: 18px;
+  }
+  /* HP: jarak ikon dan nama lebih rapat */
+  .auth-head {
+    gap: 10px;
+  }
+  /* HP: kotak ikon lebih kecil */
+  .auth-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+  /* HP: ukuran ikon di dalam kotak */
+  .auth-badge svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* HP: teks kapital lebih kecil */
+  .auth-eyebrow {
+    font-size: 0.65rem;
+  }
+  /* HP: judul kecil lebih kecil */
+  .auth-eyebrow-title {
+    font-size: 0.85rem;
+  }
+  /* HP: judul besar lebih kecil */
+  .auth-title {
+    margin: 16px 0 4px;
+    font-size: 1.3rem;
+  }
+  /* HP: kalimat pengantar lebih kecil */
+  .auth-sub {
+    margin: 0 0 16px;
+    font-size: 0.85rem;
+  }
+  /* HP: jarak antar isian lebih rapat */
+  .auth-field {
+    margin-bottom: 10px;
+  }
+  /* HP: label isian lebih kecil */
+  .auth-field label {
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+  }
+  /* HP: ikon input lebih kecil */
+  .auth-input .feather {
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    margin-top: -9px;
+  }
+  /* HP: kotak isian lebih pendek */
+  .auth-input input {
+    height: 44px;
+    padding: 0 44px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+  }
+  /* HP: tombol mata lebih kecil */
+  .auth-input .auth-toggle {
+    width: 34px;
+    height: 34px;
+    margin-top: -17px;
+  }
+  .auth-hint {
+    display: none; /* sudah ada di placeholder "Minimal 8 karakter" */
+  }
+  /* HP: tombol Masuk atau Daftar lebih pendek */
+  .auth-submit {
+    height: 46px;
+    margin-top: 4px;
+  }
+  /* HP: jarak teks bawah kartu */
+  .auth-foot {
+    margin: 16px 0 0;
+  }
+}

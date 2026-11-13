@@ -1,0 +1,276 @@
+/* Menyembunyikan panel akun dan latar saat atribut hidden aktif. */
+.account-sidebar[hidden],
+.account-sidebar-backdrop[hidden] {
+  display: none !important;
+}
+
+/* Mencegah halaman bergulir saat sidebar akun terbuka. */
+body.account-sidebar-open {
+  overflow: hidden;
+}
+
+/* Mengatur tampilan tombol pemicu menu akun di navbar. */
+.account-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #ffffff38;
+  border-radius: 999px;
+  background: #ffffff14;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+/* Memberi penanda visual saat tombol akun diarahkan atau sidebar terbuka. */
+.account-trigger:hover,
+.account-trigger[aria-expanded="true"] {
+  background: #ffffff26;
+}
+
+/* Menentukan ukuran ikon di tombol akun. */
+.account-trigger .feather {
+  width: 16px;
+  height: 16px;
+}
+
+/* Membuat lapisan gelap transparan di belakang sidebar akun. */
+.account-sidebar-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  background: rgba(25, 38, 56, 0.38);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* Menampilkan lapisan gelap ketika sidebar akun terbuka. */
+.account-sidebar-backdrop.is-open {
+  opacity: 1;
+}
+
+/* Menata sidebar akun yang muncul dari sisi kanan layar. */
+.account-sidebar {
+  position: fixed;
+  z-index: 1001;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(390px, calc(100vw - 24px));
+  overflow-y: auto;
+  border: 1px solid var(--garis-halus);
+  border-radius: 22px;
+  background: var(--latar);
+  color: var(--teks);
+  box-shadow: 0 18px 50px rgba(27, 54, 93, 0.25);
+  transform: translateX(calc(100% + 20px));
+  transition: transform 220ms ease;
+}
+
+/* Menggeser sidebar akun ke dalam layar saat dibuka. */
+.account-sidebar.is-open {
+  transform: translateX(0);
+}
+
+/* Menata tombol untuk menutup sidebar akun. */
+.account-sidebar-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--biru-muda);
+  color: var(--biru);
+}
+
+/* Mengubah warna tombol tutup saat diarahkan. */
+.account-sidebar-close:hover {
+  background: #d9e2ee;
+}
+
+/* Menyusun informasi profil di tengah bagian atas sidebar. */
+.account-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 24px 26px;
+  text-align: center;
+}
+
+/* Membuat avatar akun berbentuk lingkaran dan memusatkan ikonnya. */
+.account-avatar {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: var(--biru);
+  color: #fff;
+  box-shadow: 0 5px 16px rgba(27, 54, 93, 0.2);
+}
+
+/* Mengatur ukuran ikon di dalam avatar akun. */
+.account-avatar .feather {
+  width: 32px;
+  height: 32px;
+}
+
+/* Menata nama pengguna di bagian profil sidebar. */
+.account-profile h2 {
+  margin: 14px 42px 2px;
+  color: var(--biru);
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+
+/* Menata email atau informasi peran di bawah nama pengguna. */
+.account-profile p {
+  margin: 0;
+  color: var(--teks-abu);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+/* Menampilkan peran pengguna sebagai label berbentuk pil. */
+.account-role {
+  margin-top: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--biru-muda);
+  color: var(--biru-tua);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Menata daftar tautan dan aksi di menu akun. */
+.account-menu {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 18px 16px;
+  list-style: none;
+}
+
+/* Menyusun ikon dan teks setiap baris menu akun. */
+.account-menu li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--biru-tua);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* Memberi latar saat baris menu akun diarahkan. */
+.account-menu li:hover {
+  background: var(--biru-muda);
+}
+
+/* Membuat tautan dan form memenuhi area baris menu. */
+.account-menu li > a,
+.account-menu li > form {
+  flex: 1;
+}
+
+/* Menyamakan tata letak tautan dan tombol aksi menu akun. */
+.account-menu li > a,
+.account-menu li > form > button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--biru-tua);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+}
+
+/* Menjaga tombol logout tetap transparan saat diarahkan. */
+.account-menu li > form > button:hover {
+  background: transparent;
+}
+
+/* Menentukan ukuran dan warna ikon di daftar menu akun. */
+.account-menu .feather {
+  width: 18px;
+  height: 18px;
+  color: var(--teks-abu);
+}
+
+/* Menempatkan informasi bantuan pada bagian bawah sidebar. */
+.account-sidebar-footer {
+  margin-top: auto;
+  padding: 16px 20px;
+  border-top: 1px solid var(--garis-halus);
+  color: var(--teks-abu);
+  font-size: 0.8rem;
+}
+
+/* Menyusun ikon dan teks informasi footer secara sejajar. */
+.account-sidebar-footer span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Menentukan ukuran ikon pada footer sidebar akun. */
+.account-sidebar-footer .feather {
+  width: 16px;
+  height: 16px;
+}
+
+/* HP: membatasi lebar nama pengguna pada tombol akun agar navbar tetap ringkas. */
+@media (max-width: 700px) {
+  /* HP: tombol akun boleh menyusut (min-width 0) dan dirapatkan agar muat satu baris. */
+  .account-trigger {
+    flex: 0 1 auto;
+    min-width: 0;
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+  /* HP: ikon di tombol akun diperkecil dan tidak ikut menyusut. */
+  .account-trigger .feather {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+  /* HP: nama dipotong dengan titik-titik bila terlalu panjang. */
+  .account-trigger .account-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* HP: keterangan peran "(admin)" disembunyikan; peran tetap tampil di sidebar akun. */
+  .account-role-inline {
+    display: none;
+  }
+}
+
+/* Menghilangkan animasi sidebar saat pengguna memilih pengurangan gerakan. */
+@media (prefers-reduced-motion: reduce) {
+  /* HP: menghormati preferensi pengurangan gerakan pada animasi sidebar. */
+  .account-sidebar,
+  .account-sidebar-backdrop {
+    transition: none;
+  }
+}

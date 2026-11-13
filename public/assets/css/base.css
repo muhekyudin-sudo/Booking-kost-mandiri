@@ -1,0 +1,456 @@
+/* base.css — dimuat di SEMUA halaman (hasil pecahan dari style.css) */
+/* 1. warna */
+/* Variabel warna, dipakai di seluruh CSS lewat var(--nama) */
+:root {
+  --biru: #1b365d; /* header dan tombol utama */
+  --biru-tua: #293b52;
+  --biru-muda: #e8edf4; /* tombol sekunder, badge */
+  --latar: #f9f7f3;
+  --teks: #222;
+  --teks-abu: #52657d;
+  --garis: #c8ced8; /* garis input */
+  --garis-halus: #e6e1d8;
+  --hijau: #0f7a55;
+  --oranye-lembut: #fde7d9;
+  --oranye: #c2501c;
+  --hijau-bg: #e6f4ea;
+  --hijau-teks: #1e6b34;
+  --merah-bg: #fde8e8;
+  --merah-teks: #9b1c1c;
+  --oranye-bg: #fff1df;
+  --oranye-teks: #834d00;
+}
+
+/*2. Dasar halaman*/
+/* Font, warna latar, dan warna teks dasar semua halaman */
+body {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  margin: 0;
+  background: var(--latar);
+  color: var(--teks);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* Wadah isi halaman: lebar maksimal 1100px dan rata tengah */
+main {
+  max-width: 1100px;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1 0 auto;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+.site-footer {
+  margin-top: 24px;
+  padding: 18px 32px;
+  background: #fff;
+  border-top: 1px solid var(--garis-halus);
+  color: var(--teks-abu);
+  font-size: 0.85rem;
+}
+.site-footer-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+/* Tinggi baris judul */
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+/* Ukuran judul utama (h1) */
+h1 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+/* Ukuran sub judul (h2) */
+h2 {
+  font-size: 1.35rem;
+}
+
+/* ---------- 3. Header dan menu ---------- */
+/* Bilah biru di bagian atas semua halaman */
+header {
+  background: var(--biru);
+  color: #fff;
+  padding: 14px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* Link di header: putih tanpa garis bawah */
+header a {
+  color: #fff;
+  text-decoration: none;
+}
+header .header-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ffffff70;
+  border-radius: 999px;
+  background: #ffffff1a;
+  color: #fff;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+header .header-login:hover,
+header .header-login:focus-visible {
+  background: #ffffff30;
+  transform: translateY(-1px);
+}
+header .header-login .feather {
+  width: 17px;
+  height: 17px;
+}
+/* Logo dan nama situs di kiri header */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* Lingkaran ikon rumah pada logo */
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff1f;
+  display: grid;
+  place-items: center;
+}
+/* Menu di kanan header (Login, Logout, dsb.) */
+header nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* Form logout di header: nama pengguna dan tombol sejajar */
+header form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+/* Tombol kecil di header (mis. Logout) */
+header button {
+  width: auto;
+  margin: 0;
+  padding: 6px 12px;
+}
+
+/* ---------- 4. Kartu dan pesan ---------- */
+/* Kotak putih berbayang untuk membungkus konten (filter, info gedung, dsb.) */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--garis-halus);
+  padding: 20px;
+  box-shadow: 0 2px 10px #0000000f;
+  margin-bottom: 16px;
+}
+/* Dasar kotak pesan/notifikasi di atas konten */
+.alert {
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 12px 0;
+}
+/* Pesan error: latar merah muda */
+.error {
+  background: var(--merah-bg);
+  color: var(--merah-teks);
+}
+/* Pesan sukses: latar hijau muda */
+.ok {
+  background: var(--hijau-bg);
+  color: var(--hijau-teks);
+}
+
+/* ---------- 5. Form dan tombol ---------- */
+/* Ukuran dan jarak dasar semua elemen form */
+input,
+button,
+select,
+textarea {
+  padding: 10px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  margin: 4px 0 12px;
+}
+/* Tampilan kotak isian dan dropdown: border tipis, sudut membulat */
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--garis-halus);
+  border-radius: 12px;
+  font-family: inherit;
+  background: #fff;
+}
+/* Tombol utama berwarna biru; .button dipakai untuk link yang tampil seperti tombol */
+button,
+.button {
+  display: inline-block;
+  background: var(--biru);
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 18px;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+/* Tombol nonaktif tampil pudar */
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* Tombol sekunder berwarna krem (mis. Reset) */
+.button.secondary {
+  background: #efeae1;
+  color: var(--teks);
+}
+
+/* ---------- 6. Tata letak umum ---------- */
+/* Baris judul halaman: judul di kiri, aksi atau statistik di kanan */
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 8px 0 24px;
+}
+/* Jarak atas judul dan paragraf di dalam .page-heading */
+.page-heading h1,
+.page-heading p {
+  margin-top: 4px;
+}
+/* Paragraf keterangan di bawah judul: warna abu */
+.page-heading p {
+  color: var(--teks-abu);
+  margin-bottom: 0;
+}
+/* Deretan kartu angka ringkas (Gedung, Kota, Unit tersedia) */
+.stats {
+  display: flex;
+  gap: 14px;
+}
+/* Satu kartu angka: ikon, label, dan angka */
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--garis-halus);
+  border-radius: 14px;
+  padding: 12px 18px 12px 12px;
+  box-shadow: 0 2px 8px #0000000d;
+}
+/* Kotak ikon kecil di dalam .stat */
+.stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--biru-muda);
+  display: grid;
+  place-items: center;
+}
+/* Label kecil di atas angka statistik */
+.stat small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--teks-abu);
+}
+/* Angka statistik */
+.stat strong {
+  font-size: 1.15rem;
+}
+/* Susunan vertikal dengan jarak antar item */
+.stack {
+  display: grid;
+  gap: 16px;
+}
+/* Dua bagian sejajar kiri-kanan, turun baris kalau sempit */
+.split {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Ukuran bawaan ikon Feather */
+.feather {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Badge, hint, tombol kembali ---------- */
+/* Label bulat kecil (badge) untuk status */
+.badge {
+  display: inline-block;
+  background: var(--biru-muda);
+  color: var(--biru-tua);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+}
+/* Badge hijau: tersedia */
+.badge.available {
+  background: var(--hijau-bg);
+  color: var(--hijau-teks);
+}
+/* Badge oranye: belum tersedia */
+.badge.unavailable {
+  background: var(--oranye-bg);
+  color: var(--oranye-teks);
+}
+
+/* Teks petunjuk kecil berwarna abu */
+.hint {
+  color: var(--teks-abu);
+  font-size: 0.95rem;
+}
+
+/* Tombol di kanan atas judul halaman: ikon dan teks sejajar */
+.page-heading .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Link “Kembali” dengan ikon */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: var(--biru);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+/* Garis bawah saat link kembali di-hover */
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Responsif (HP) ---------- */
+@media (max-width: 700px) {
+  /* HP: margin halaman lebih tipis */
+  main {
+    margin: 16px auto;
+    padding: 0 12px;
+  }
+  /* HP: judul utama dikecilkan */
+  h1 {
+    font-size: 1.6rem;
+  }
+  /* HP: sub judul dikecilkan */
+  h2 {
+    font-size: 1.2rem;
+  }
+  /* HP: header satu baris (tidak boleh turun baris), padding lebih rapat */
+  header {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  /* HP: logo dan nama situs diperkecil, tidak ikut menyusut */
+  .brand {
+    flex-shrink: 0;
+    gap: 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  /* HP: lingkaran ikon logo diperkecil */
+  .brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .site-footer {
+    padding: 16px;
+  }
+  .site-footer-content {
+    flex-direction: column;
+    gap: 4px;
+  }
+  /* HP: menu header menempati sisa lebar, satu baris, rata kanan; min-width 0 agar anak boleh menyusut */
+  header nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  /* HP: tombol di menu header lebih kecil dan teksnya tidak pecah baris */
+  header nav .button {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+    /* HP: tombol Masuk setinggi lingkaran logo (28px) dan rata dengan tepi kanan,
+     sama seperti ikon rumah yang rata dengan tepi kiri */
+  header nav .header-login {
+    height: 28px;
+    padding: 0 10px;
+    gap: 6px;
+    margin-right: 0;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  header nav .header-login .feather {
+    width: 14px;
+    height: 14px;
+  }
+  /* HP: kata "Admin" pada tombol Dashboard disembunyikan agar muat */
+  .nav-dashboard-extra {
+    display: none;
+  }
+  /* HP: form logout boleh turun baris */
+  header form {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  /* HP: padding kartu lebih kecil */
+  .card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  /* HP: jarak judul halaman lebih rapat */
+  .page-heading {
+    margin: 4px 0 16px;
+  }
+  /* 3 kartu angka: sejajar 3 kolom, ikon di atas teks, tidak lagi meluber */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+  .stats .stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+}
+
+/* HP sempit (<=420px): teks "Kost Mandiri" disembunyikan, cukup ikon logo, agar nama akun muat */
+@media (max-width: 420px) {
+  /* HP sempit: sembunyikan teks logo (link logo tetap punya aria-label) */
+  .brand strong {
+    display: none;
+  }
+}

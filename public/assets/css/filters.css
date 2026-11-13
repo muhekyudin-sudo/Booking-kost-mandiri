@@ -1,0 +1,126 @@
+/* filters.css — form filter/pencarian (katalog dan daftar booking resepsionis) */
+/* ---------- 7. Filter katalog ---------- */
+/* Form filter katalog (desktop): 3 dropdown dan tombol dalam satu grid */
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  align-items: end;
+  gap: 6px 16px; /* 6px jarak label ke dropdown, 16px jarak antar kolom */
+}
+/* Label di atas dropdown */
+.filters label {
+  grid-row: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--teks-abu);
+}
+/* Tinggi dropdown filter 44px tanpa margin */
+.filters select {
+  margin: 0;
+  height: 44px;
+}
+/* Wadah tombol Terapkan filter dan Reset */
+.filters .actions {
+  grid-row: 2;
+  grid-column: 4;
+  display: flex;
+  gap: 8px;
+  align-items: stretch; /* semua tombol dipaksa setinggi baris yang sama */
+  height: 44px; /* sama dengan tinggi dropdown */
+}
+/* Gaya tombol dan link di dalam .actions agar sama tinggi */
+.filters .actions > * {
+  /* > * artinya: semua anak langsung, baik button maupun a */
+  margin: 0;
+  box-sizing: border-box;
+  padding: 0 20px; /* atas-bawah 0, tinggi diatur oleh .actions */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+  gap: 8px;
+}
+/* Kalau dropdown Kota disembunyikan, hanya ada 2 dropdown */
+.filters--no-city {
+  grid-template-columns: 1fr 1fr auto;
+}
+/* Tombol bergeser ke kolom 3 kalau dropdown kota disembunyikan */
+.filters--no-city .actions {
+  grid-column: 3;
+}
+
+/* HP */
+@media (max-width: 700px) {
+  /* Dropdown ditumpuk menjadi 1 kolom */
+  .filters {
+    grid-template-columns: 1fr;
+  }
+  /* Label, dropdown, dan tombol mengikuti urutan 1 kolom */
+  .filters label,
+  .filters .select-wrap,
+  .filters .actions {
+    grid-row: auto;
+    grid-column: 1;
+  }
+  /* Jarak antar kelompok label dan dropdown */
+  .filters label {
+    margin-top: 8px;
+  }
+  /* Label pertama tanpa jarak atas */
+  .filters label:first-of-type {
+    margin-top: 0;
+  }
+  /* Tombol boleh turun baris dan diberi jarak atas */
+  .filters .actions {
+    height: auto; /* tinggi mengikuti isi, bukan dipaksa 44px */
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  /* Tombol melebar dan setinggi 44px */
+  .filters .actions > * {
+    flex: 1 1 140px; /* tombol melebar; kalau sempit otomatis turun baris */
+    height: 44px;
+  }
+
+  /* Varian hemat tempat (katalog): dropdown sejajar dalam 1 baris */
+  .filters--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 6px;
+    padding: 12px; /* lebih tipis dari .card (16px) supaya dropdown lebih lebar */
+  }
+  /* Kota disembunyikan: hanya 2 dropdown */
+  .filters--compact.filters--no-city {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* kota disembunyikan: 2 dropdown */
+  }
+  /* Label dropdown lebih kecil */
+  .filters--compact label {
+    grid-row: 1;
+    grid-column: auto;
+    margin-top: 0;
+    font-size: 0.72rem;
+  }
+  /* Dropdown sejajar di baris kedua */
+  .filters--compact .select-wrap {
+    grid-row: 2;
+    grid-column: auto;
+  }
+  /* Tombol selebar baris, di bawah dropdown */
+  .filters--compact .actions {
+    grid-row: 3;
+    grid-column: 1 / -1; /* tombol selebar baris, di bawah dropdown */
+    margin-top: 8px;
+  }
+  /* Tulisan tombol Terapkan filter dan Reset diperkecil */
+  .filters--compact .actions > * {
+    flex: 1 1 100px;
+    height: 36px;
+    gap: 6px;
+    font-size: 0.75rem; /* tulisan tombol lebih kecil */
+  }
+  /* Ikon di tombol filter diperkecil */
+  .filters--compact .actions .feather {
+    width: 14px;
+    height: 14px;
+  }
+}

@@ -1,0 +1,46 @@
+/* Halaman Pengaturan akun: dua kartu berdampingan di layar lebar, bertumpuk di HP */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+/* Jarak antar kartu diatur oleh gap kisi, bukan margin kartu */
+.settings-grid .card {
+  margin-bottom: 0;
+}
+/* Judul kartu tanpa margin atas berlebih */
+.settings-card h2 {
+  margin-top: 0;
+}
+/* Label form tampil di atas isian dan tebal */
+.settings-form label {
+  display: block;
+  font-weight: 600;
+}
+/* Tombol simpan selebar kartu agar mudah ditekan di HP */
+.settings-form button {
+  width: 100%;
+}
+/* Daftar informasi akun: judul kecil di atas, nilai tebal di bawah */
+.info-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.info-list dt {
+  color: var(--teks-abu);
+  font-size: 0.85rem;
+}
+.info-list dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* HP: kartu bertumpuk satu kolom */
+@media (max-width: 700px) {
+  .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

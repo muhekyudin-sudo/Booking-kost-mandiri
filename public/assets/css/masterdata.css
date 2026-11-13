@@ -1,0 +1,107 @@
+/* Gaya khusus halaman Manajemen Master Data (admin) */
+/* Lebar maksimal isi halaman master data: 960px */
+main {
+  max-width: 960px;
+}
+
+/* Menu tab antar data (kota, gedung, kelas, dsb.) */
+.master-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Satu tab di menu master data */
+.master-nav a {
+  padding: 6px 9px;
+  background: #eef2f7;
+  border-radius: 5px;
+  color: #1f3a5f;
+}
+
+/* Tab yang sedang aktif */
+.master-nav a[aria-current="page"] {
+  background: #1f3a5f;
+  color: #fff;
+}
+
+/* Satu data dengan garis pemisah di atasnya */
+.record {
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
+  margin-top: 16px;
+}
+
+/* Ukuran dropdown dan textarea di form master data */
+select,
+textarea {
+  padding: 10px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 4px 0 12px;
+}
+
+/* Tombol hapus berwarna merah */
+button.danger {
+  background: #9b1c1c;
+}
+
+/* ---------- Filter & pencarian ---------- */
+/* Form pencarian dan filter: isian berjajar, turun baris kalau sempit */
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 14px;
+}
+
+/* Satu kolom isian di form filter */
+.filter-field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+/* Kotak pencarian */
+.filter-field input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  font: inherit;
+  margin: 4px 0 12px;
+}
+
+/* Tombol di form filter */
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Teks info hasil filter */
+.filter-info {
+  margin: 0 0 12px;
+  color: var(--teks-abu);
+}
+
+/* ---------- Foto kota (form kota) ---------- */
+/* Pratinjau foto kota di form kota */
+.city-image-preview {
+  display: block;
+  width: min(100%, 320px);
+  height: 180px;
+  margin: 8px 0 12px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+/* Checkbox “hapus foto” sejajar dengan teksnya */
+.delete-city-image {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Ukuran checkbox hapus foto */
+.delete-city-image input {
+  width: auto;
+  margin: 4px 0 12px;
+}

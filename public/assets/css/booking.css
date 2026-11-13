@@ -1,0 +1,36 @@
+/* booking.css — detail booking, QRIS (penyewa) dan detail di daftar booking resepsionis */
+/* Daftar detail booking: label di kiri, nilai di kanan (grid 2 kolom) */
+.details {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr;
+  gap: 8px;
+  margin: 20px 0;
+}
+/* Label (nama kolom) dicetak tebal */
+.details dt {
+  font-weight: 600;
+}
+/* Nilai detail tanpa margin bawaan */
+.details dd {
+  margin: 0;
+}
+/* Gambar QRIS pembayaran: maksimal 360px dan di tengah */
+.qris-image {
+  display: block;
+  max-width: min(100%, 360px);
+  height: auto;
+  margin: 16px auto;
+}
+
+/* HP: detail booking jadi 1 kolom */
+@media (max-width: 700px) {
+  /* Label dan nilai ditumpuk ke bawah */
+  .details {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  /* Jarak antar pasangan label dan nilai */
+  .details dd {
+    margin-bottom: 10px;
+  }
+}
